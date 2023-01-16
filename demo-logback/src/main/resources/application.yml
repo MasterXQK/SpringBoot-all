@@ -2,3 +2,13 @@ server:
   port: 8080
   servlet:
     context-path: /demo
+spring:
+  output:
+    ansi:
+      enabled: always
+
+log:
+  env: dev
+  level: INFO
+  path: /logs
+  type: message

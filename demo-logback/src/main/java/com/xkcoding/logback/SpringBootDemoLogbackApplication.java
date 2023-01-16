@@ -31,5 +31,6 @@ public class SpringBootDemoLogbackApplication {
         } catch (Exception e) {
             log.error("【SpringBootDemoLogbackApplication】启动异常：", e);
         }
+        String s = "\"";
     }
 }
