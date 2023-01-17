@@ -135,6 +135,8 @@
         <artifactId>UserAgentUtils</artifactId>
         <version>${user.agent.version}</version>
       </dependency>
+
+
     </dependencies>
   </dependencyManagement>
 

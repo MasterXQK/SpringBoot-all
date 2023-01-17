@@ -1,21 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+  <!--引入yml配置-->
+  <springProperty name="LOG_PATH" source="log.path" defaultValue="/var/Amazon/logs/xqk"/>
+  <springProperty name="LOG_TYPE" source="log.type" defaultValue="message"/>
+  <springProperty name="LOG_LEVEL" source="log.level" defaultValue="INFO"/>
+  <springProperty name="LOG_ENV" source="log.env" defaultValue="env"/>
+  <springProperty name="LOG_APP" source="spring.application.name" defaultValue="demo-logback"/>
+  <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+  <!--
+  $clr()(red) 重置颜色
+  ${} 引用前文定义的变量
+  %X{} 引用MDC中的变量
+  %thread 引用线程名
+  %logger{36} 引用logger名，最大长度为36
+  eg: %X{traceId:-TRACE_ID} 引用MDC中的"traceId"，如果不存在则使用默认值"TRACE_ID"代替
+  -->
+
+  <!-- 输出日志如下:
+  [2023-01-17 22:35:23.294] [main] [dev] [WARN] [TRACE_ID] [PARENT_ID] [SPAN_ID] [URI] [HTTP_METHOD] [PROTOCOL] [message] [com.xkcoding.logback.SpringBootDemoLogbackApplication] [Spring boot启动初始化了 132 个 Bean]
+  [2023-01-17 22:35:45.725] [threadPoolTaskExecutor-1] [dev] [WARN] [Morgan-熊乾坤-0f7d356b-12dd-4fea-8a92-5fa613bf3cc2] [PARENT_ID] [SPAN_ID] [/demo/test-log2] [GET] [HTTP/1.1] [message] [com.xkcoding.logback.service.TestService] [【TestService】warn]
+  -->
+  <!--  日志模板-->
+  <property name="file_info_pattern"
+            value="[%d{yyyy-MM-dd HH:mm:ss.SSS}] %clr([%thread]) %clr([${LOG_ENV}]) %clr([%level]) %clr([%X{traceId:-TRACE_ID}]){magenta} [%X{parentId:-PARENT_ID}] [%X{spanId:-SPAN_ID}] %clr([%X{url:-URI}]) %clr([%X{method:-HTTP_METHOD}]) [%X{protocol:-PROTOCOL}] [${LOG_TYPE}] [%c] %clr([%msg]) %n"/>
+
+  <!--ERROR日志模板-->
   <property name="FILE_ERROR_PATTERN"
             value="%date{yyyy-MM-dd HH:mm:ss.SSS} ${PID:- } [%-5level] [%thread]  %logger{36} %file:%line : - %msg%n"/>
-
-
-
-  <property name="file_info_pattern"
-            value="[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%thread][${ENV}] [%level] [%X{traceId}] [%X{parentId}] [%X{spanId}] [%X{url}][%X{protocol}] [%X{logType}] %logger{50} - %msg%n"/>
-
-  <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
 
 	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
 		<filter class="ch.qos.logback.classic.filter.LevelFilter">
 			<level>INFO</level>
 		</filter>
 		<encoder>
-      <!--这个pattern是org/springframework/boot/logging/logback/defaults.xml这里面的-->
+      <!-- 引用前文定义 -->
 			<pattern>${file_info_pattern}</pattern>
 			<charset>UTF-8</charset>
 		</encoder>
@@ -26,8 +45,11 @@
     <queueSize>1024</queueSize>
     <neverBlock>true</neverBlock>
     <appender-ref ref="CONSOLE"/>
+    <!-- 包含类名-->
+    <includeCallerData>true</includeCallerData>
   </appender>
 
+  <!-- 只输出 INFO WARN -->
 	<appender name="FILE_INFO" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<!--如果只是想要 Info 级别的日志，只是过滤 info 还是会输出 Error 日志，因为 Error 的级别高， 所以我们使用下面的策略，可以避免输出 Error 的日志-->
 		<filter class="ch.qos.logback.classic.filter.LevelFilter">
@@ -43,19 +65,11 @@
 		<!--滚动策略，按照时间滚动 TimeBasedRollingPolicy-->
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<!--文件路径,定义了日志的切分方式——把每一天的日志归档到一个文件中,以防止日志填满整个磁盘空间-->
-			<FileNamePattern>logs/demo-logback/info.created_on_%d{yyyy-MM-dd}.part_%i.log</FileNamePattern>
+			<FileNamePattern>${LOG_PATH}/${LOG_APP}/%d{yyyy-MM-dd}.info.log</FileNamePattern>
 			<!--只保留最近90天的日志-->
 			<maxHistory>90</maxHistory>
 			<!--用来指定日志文件的上限大小，那么到了这个值，就会删除旧的日志-->
-			<!--<totalSizeCap>1GB</totalSizeCap>-->
-			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-				<!-- maxFileSize:这是活动文件的大小，默认值是10MB,本篇设置为1KB，只是为了演示 -->
-				<maxFileSize>2MB</maxFileSize>
-			</timeBasedFileNamingAndTriggeringPolicy>
 		</rollingPolicy>
-		<!--<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">-->
-		<!--<maxFileSize>1KB</maxFileSize>-->
-		<!--</triggeringPolicy>-->
 		<encoder>
 			<pattern>${file_info_pattern}</pattern>
 			<charset>UTF-8</charset> <!-- 此处设置字符集 -->
@@ -80,13 +94,9 @@
 		<!--滚动策略，按照时间滚动 TimeBasedRollingPolicy-->
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<!--文件路径,定义了日志的切分方式——把每一天的日志归档到一个文件中,以防止日志填满整个磁盘空间-->
-			<FileNamePattern>logs/demo-logback/error.created_on_%d{yyyy-MM-dd}.part_%i.log</FileNamePattern>
+      <FileNamePattern>${LOG_PATH}/${LOG_APP}/%d{yyyy-MM-dd}.error.log</FileNamePattern>
 			<!--只保留最近90天的日志-->
 			<maxHistory>90</maxHistory>
-			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-				<!-- maxFileSize:这是活动文件的大小，默认值是10MB,本篇设置为1KB，只是为了演示 -->
-				<maxFileSize>2MB</maxFileSize>
-			</timeBasedFileNamingAndTriggeringPolicy>
 		</rollingPolicy>
 		<encoder>
 			<pattern>${FILE_ERROR_PATTERN}</pattern>

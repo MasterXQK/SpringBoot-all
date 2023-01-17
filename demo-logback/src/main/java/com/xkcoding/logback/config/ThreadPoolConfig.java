@@ -11,6 +11,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 /**
  * @author Morgan
  * @create 2023-01-17-0:03
+ * @description 线程池配置
  */
 @EnableAsync
 @Configuration

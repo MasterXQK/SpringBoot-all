@@ -6,9 +6,11 @@ spring:
   output:
     ansi:
       enabled: always
+  application:
+    name: demo-logback
 
 log:
   env: dev
   level: INFO
-  path: /logs
+  path: /var/Amazon/logs/xqk
   type: message

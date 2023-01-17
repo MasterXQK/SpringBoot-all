@@ -43,7 +43,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
         </dependency>
-    </dependencies>
+    <dependency>
+      <groupId>cn.hutool</groupId>
+      <artifactId>hutool-all</artifactId>
+    </dependency>
+  </dependencies>
 
     <build>
         <finalName>demo-logback</finalName>

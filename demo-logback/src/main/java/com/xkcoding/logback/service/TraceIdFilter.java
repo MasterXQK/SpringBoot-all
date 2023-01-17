@@ -1,20 +1,19 @@
 package com.xkcoding.logback.service;
 
-import com.xkcoding.logback.config.LogConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.UUID;
 
 /**
  * @author Morgan
  * @create 2023-01-17-0:00
+ * @description 日志链路追踪过滤器
  */
 @Slf4j
 @WebFilter(filterName = "traceIdFilter", urlPatterns = "/*")
@@ -22,41 +21,62 @@ import java.util.UUID;
 @Component
 public class TraceIdFilter implements Filter {
 
-    @Autowired
-    private LogConfig logConfig;
     /**
      * 日志跟踪标识
      */
     public static final String TRACE_ID = "traceId";
-    public static final String LOG_URL = "url";
-    public static final String LOG_LEVEL = "level";
-    public static final String LOG_ENV = "ENV";
-    public static final String LOG_TYPE = "logType";
-
+    public static final String METHOD = "method";
+    public static final String URL = "url";
+//    public static final String LOCAL_NAME = "localName";
+    public static final String PROTOCOL = "protocol";
 
     @Override
     public void init(FilterConfig filterConfig) {
     }
 
-//    value="[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%thread]
-//    [${ENV}] [%level] [%X{traceId}]
-//    [%X{parentId}] [%X{spanId}]
-//    [%X{url}][%X{protocol}] [%X{logType}] %logger{50} - %msg%n"/>
+//    value="[%d{yyyy-MM-dd HH:mm:ss.SSS}]
+//    %clr([%thread])
+//    %clr([${LOG_ENV}])
+//    %clr([%level])
+//    %clr([%X{traceId}]){magenta}
+//    [%X{parentId}]
+//    [%X{spanId}]
+//    [%X{url}]
+//    [${LOG_PROTOCOL}]
+//    [${LOG_TYPE}]
+//    [%logger{50}]
+//    %clr([%msg]) %n"/>
+
+    /** 你想要在logback里面 %X{str}显示什么 就要在MDC里面put进去同名的参数 */
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
         throws IOException, ServletException {
+        String method = "";
+        String url = "";
+        String localName = "";
+        String protocol = "";
+
+        // 转换成httpRequest
+        HttpServletRequest httpRequest = (HttpServletRequest) servletRequest;
+        if (httpRequest != null) {
+            method = httpRequest.getMethod();
+            /** 在这里从httpRequest里面找出URI /demo/test-log2 放进MDC 从而收录进logback */
+            url = httpRequest.getRequestURI();
+//            localName = httpRequest.getLocalName();
+            protocol = httpRequest.getProtocol();
+        }
+
         // TODO 在这里可以自定义你的traceID 比如可以把userID放进来 方便查看日志
         String MORGAN = "Morgan-熊乾坤";
         String traceId = String.format("%s-%s", MORGAN, UUID.randomUUID());
+
+        // MDC put
+        MDC.put(METHOD, method);
         MDC.put(TRACE_ID, traceId);
-        MDC.put(LOG_URL, logConfig.getLOG_PATH());
-        MDC.put(LOG_LEVEL, logConfig.getLOG_LEVEL());
-        MDC.put(LOG_ENV, logConfig.getLOG_ENV());
-        MDC.put(LOG_ENV, "ENV_TEST");
-        MDC.put(LOG_TYPE, logConfig.getLOG_TYPE());
+//        MDC.put(LOCAL_NAME, localName);
+        MDC.put(PROTOCOL, protocol);
+        MDC.put(URL, url);
 
-
-        // MDC 需要put
         filterChain.doFilter(servletRequest, servletResponse);
     }
 

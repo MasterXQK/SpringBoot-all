@@ -28,6 +28,7 @@ public class TestController {
 
     @GetMapping("/test-log2")
     public void testThreadPoolTaskExecutor(){
+        log.info("进入Controller层 调用testThreadPoolTaskExecutor方法");
         testService.testLog();
     }
 }
