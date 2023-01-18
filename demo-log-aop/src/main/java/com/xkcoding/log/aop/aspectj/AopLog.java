@@ -42,9 +42,10 @@ public class AopLog {
     /**
      * 切入点
      */
-    @Pointcut("execution(public * com.xkcoding.log.aop.controller.*Controller.*(..))")
+//    @Pointcut("execution(public * com.xkcoding.log.aop.controller.*Controller.*(..))")
+    // 正则表达式匹配到这个包下的所有文件 切入
+    @Pointcut("execution(public * com.xkcoding.log.aop.controller.*.*(..))")
     public void log() {
-
     }
 
     /**
@@ -80,7 +81,9 @@ public class AopLog {
             .timeCost(System.currentTimeMillis() - startTime)
             .userAgent(header)
             .browser(userAgent.getBrowser().toString())
-            .os(userAgent.getOperatingSystem().toString()).build();
+            .os(userAgent.getOperatingSystem().toString())
+            .morgan("熊乾坤")
+            .build();
 
         log.info("Request Log Info : {}", JSONUtil.toJsonStr(l));
 
@@ -110,6 +113,7 @@ public class AopLog {
         for (int i = 0; i < names.length; i++) {
             map.put(names[i], args[i]);
         }
+        map.put("MORGAN", "熊乾坤");
         return map;
     }
 
@@ -174,5 +178,8 @@ public class AopLog {
         private String browser;
         // user-agent
         private String userAgent;
+
+        // Morgan 熊乾坤
+        private String morgan;
     }
 }

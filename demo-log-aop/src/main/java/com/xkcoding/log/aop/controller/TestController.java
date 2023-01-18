@@ -32,6 +32,7 @@ public class TestController {
      */
     @GetMapping("/test")
     public Dict test(String who) {
+        log.info("test Controller");
         return Dict.create().set("who", StrUtil.isBlank(who) ? "me" : who);
     }
 
